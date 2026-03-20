@@ -9,3 +9,4 @@ htmlcov/
 db.sqlite3
 .DS_Storevenv/
 __pycache__/
+*.pyc
