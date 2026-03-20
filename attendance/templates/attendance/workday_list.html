@@ -1,0 +1,52 @@
+<!-- attendance/templates/attendance/workday_list.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ page_title }}</h2>
+</div>
+
+<div class="month-nav">
+  <a href="?year={{ prev_year }}&month={{ prev_month }}">
+    ← {{ prev_year }}/{{ prev_month }}
+  </a>
+  <strong>{{ year }}年{{ month }}月</strong>
+  <a href="?year={{ next_year }}&month={{ next_month }}">
+    {{ next_year }}/{{ next_month }} →
+  </a>
+</div>
+
+<div class="summary-card">
+  <span>合計実働：{{ total_h }}時間{{ total_m }}分</span>
+  <span>提出済み：{{ submitted }}日</span>
+</div>
+
+{% for wd in workdays %}
+<div class="record-card {% if wd.status == 'SUBMITTED' %}submitted{% else %}draft{% endif %}">
+  <div class="record-date">
+    {{ wd.date }}
+    <span class="status-badge">{{ wd.get_status_display }}</span>
+  </div>
+  <div class="record-times">
+    {{ wd.clock_in|default:"--:--" }} 〜 {{ wd.clock_out|default:"--:--" }}
+    （休憩 {{ wd.break_min }}分）
+  </div>
+  {% if wd.note %}
+  <div class="record-note">{{ wd.note }}</div>
+  {% endif %}
+  <div class="record-actions">
+    <a href="{% url 'workday_detail' wd.pk %}">詳細</a>
+    {% if wd.status == 'DRAFT' %}
+    <a href="{% url 'workday_edit_date' wd.date|date:'Y-m-d' %}">編集</a>
+    {% endif %}
+  </div>
+</div>
+{% empty %}
+<div class="empty-state">この月のデータはありません</div>
+{% endfor %}
+
+<div class="page-actions">
+  <a href="{% url 'workday_edit' %}">今日の勤怠を入力</a>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}KINTAI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/kintai.css' %}">
+</head>
+<body>
+<div class="layout">
+
+  <!-- ヘッダー -->
+  <header class="header">
+    <a href="{% if user.is_staff %}{% url 'admin_dash' %}{% else %}{% url 'workday_list' %}{% endif %}"
+       class="header-logo">⏱ KINTAI</a>
+    <div class="header-right">
+      {% if user.is_authenticated %}
+        <span class="header-user">{{ user.last_name }} {{ user.first_name }}</span>
+        <form method="post" action="{% url 'logout' %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="btn-logout">ログアウト</button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- サイドバー -->
+  <aside class="sidebar">
+    <a href="{% url 'workday_list' %}"    class="sidebar-link">📋 勤怠一覧</a>
+    <a href="{% url 'workday_edit' %}"    class="sidebar-link">✏️ 今日の勤怠入力</a>
+    <a href="{% url 'unsubmitted_user' %}" class="sidebar-link">⚠️ 未提出一覧</a>
+    <a href="{% url 'csv_import' %}"       class="sidebar-link">📥 CSVインポート</a>
+    {% if user.is_staff %}
+    <hr style="margin:12px 20px;border-color:var(--border)">
+    <a href="{% url 'admin_dash' %}"       class="sidebar-link">🏠 管理ダッシュボード</a>
+    <a href="{% url 'admin_workdays' %}"   class="sidebar-link">📊 全社員勤怠</a>
+    <a href="{% url 'admin_unsub' %}"      class="sidebar-link">🔔 未提出者</a>
+    <a href="{% url 'admin_user_list' %}"  class="sidebar-link">👥 社員管理</a>
+    <a href="{% url 'admin_csv_export' %}" class="sidebar-link">📤 CSVエクスポート</a>
+    <a href="{% url 'admin_changelog' %}"  class="sidebar-link">🕓 変更ログ</a>
+    {% endif %}
+  </aside>
+
+  <!-- メインコンテンツ -->
+  <main class="main-content">
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ボトムナビ（モバイル） -->
+  <nav class="bottom-nav">
+    {% if user.is_staff %}
+    <a href="{% url 'admin_dash' %}"      class="bottom-nav-link">🏠<span>管理</span></a>
+    <a href="{% url 'admin_workdays' %}"  class="bottom-nav-link">📊<span>全社員</span></a>
+    {% endif %}
+    <a href="{% url 'workday_list' %}"     class="bottom-nav-link">📋<span>一覧</span></a>
+    <a href="{% url 'workday_edit' %}"     class="bottom-nav-link">✏️<span>入力</span></a>
+    <a href="{% url 'unsubmitted_user' %}" class="bottom-nav-link">⚠️<span>未提出</span></a>
+  </nav>
+
+</div>
+</body>
+</html>

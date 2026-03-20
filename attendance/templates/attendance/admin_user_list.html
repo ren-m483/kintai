@@ -1,0 +1,75 @@
+<!-- attendance/templates/attendance/admin_user_list.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <h2>{{ page_title }}</h2>
+    <p class="sub-title">社員の登録・編集・権限管理</p>
+  </div>
+  <a href="{% url 'admin_user_create' %}" class="btn btn-primary">＋ 新規登録</a>
+</div>
+
+<!-- 検索フォーム -->
+<form method="get" class="search-form">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" name="q" value="{{ q }}"
+           placeholder="名前・ユーザー名で検索..."
+           class="search-input">
+    {% if q %}
+    <a href="{% url 'admin_user_list' %}" class="search-clear">✕</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- 件数表示 -->
+<p class="result-count">
+  {% if q %}
+    「{{ q }}」の検索結果：{{ users|length }}件
+  {% else %}
+    全 {{ users|length }}名
+  {% endif %}
+</p>
+
+<!-- ユーザー一覧 -->
+<div class="user-table-wrap">
+  {% for u in users %}
+  <div class="user-row {% if not u.is_active %}user-row-inactive{% endif %}">
+
+    <!-- アバター -->
+    <div class="user-avatar {% if u.is_staff %}avatar-admin{% endif %}">
+      {{ u.last_name|first }}{{ u.first_name|first }}
+    </div>
+
+    <!-- 情報 -->
+    <div class="user-info">
+      <div class="user-name">
+        {{ u.last_name }} {{ u.first_name }}
+        {% if not u.is_active %}
+          <span class="inactive-label">無効</span>
+        {% endif %}
+      </div>
+      <div class="user-meta">@{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</div>
+    </div>
+
+    <!-- ロールバッジ -->
+    <div class="user-role">
+      {% if u.is_staff %}
+        <span class="role-badge role-admin">管理者</span>
+      {% else %}
+        <span class="role-badge role-general">一般</span>
+      {% endif %}
+    </div>
+
+    <!-- 操作 -->
+    <div class="user-actions">
+      <a href="{% url 'admin_user_edit' u.pk %}" class="btn btn-ghost btn-sm">編集</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state">該当するユーザーが見つかりません</div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+<!-- attendance/templates/attendance/unsubmitted_user.html -->
+{% extends "attendance/base.html" %}
+{% block title %}未提出一覧{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>未提出一覧（直近 30 日）</h2>
+</div>
+
+{% if unsubmitted %}
+<div class="alert-warning" style="margin-bottom:16px">
+  {{ count }}日分が未提出です
+</div>
+{% for d in unsubmitted %}
+<div class="record-card draft">
+  <div class="record-date">{{ d }}</div>
+  <div class="record-actions">
+    <a href="{% url 'workday_edit_date' d|date:'Y-m-d' %}">入力する</a>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+  未提出の日付はありません 🎉
+</div>
+{% endif %}
+
+<p style="margin-top:20px">
+  <a href="{% url 'workday_list' %}" style="color:#666;font-size:.9rem">← 一覧に戻る</a>
+</p>
+{% endblock %}

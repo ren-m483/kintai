@@ -1,0 +1,33 @@
+<!-- attendance/templates/attendance/login.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ログイン | KINTAI</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+  <div class="login-box">
+    <h1>⏱ KINTAI</h1>
+
+    {% if form.errors %}
+      <div class="alert alert-error">
+        ユーザー名またはパスワードが正しくありません
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+        <label for="id_username">ユーザー名</label>
+        <input type="text" name="username" id="id_username"
+                autofocus autocomplete="username" required>
+        <label for="id_password">パスワード</label>
+        <input type="password" name="password" id="id_password"
+               autocomplete="current-password" required>
+               <button type="submit">ログイン</button>
+    </form>
+  </div>
+</body>
+</html>

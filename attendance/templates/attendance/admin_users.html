@@ -1,0 +1,97 @@
+<!-- attendance/templates/attendance/admin_users.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ page_title }}</h2>
+</div>
+
+<!-- フィルタフォーム -->
+<form method="get" class="filter-form">
+  <select name="year">
+    {% for y in year_choices %}
+      <option value="{{ y }}"
+        {% if y == cur_year %}selected{% endif %}>{{ y }}年</option>
+    {% endfor %}
+  </select>
+  <select name="month">
+    {% for m in month_choices %}
+      <option value="{{ m }}"
+        {% if m == cur_month %}selected{% endif %}>{{ m }}月</option>
+    {% endfor %}
+  </select>
+  <select name="user">
+    <option value="">全社員</option>
+    {% for u in users %}
+      <option value="{{ u.pk }}"
+        {% if u.pk|stringformat:"s" == cur_user %}selected{% endif %}>
+        {{ u.last_name }} {{ u.first_name }}
+      </option>
+    {% endfor %}
+  </select>
+  <select name="status">
+    <option value="">全ステータス</option>
+    {% for val, label in status_choices %}
+      <option value="{{ val }}"
+        {% if val == cur_status %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary">絞り込む</button>
+</form>
+
+<!-- テーブル形式の一覧 -->
+{% if workdays %}
+<div class="data-table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>社員名</th>
+        <th>日付</th>
+        <th>出勤</th>
+        <th>退勤</th>
+        <th>休憩</th>
+        <th>実働</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for wd in workdays %}
+      <tr class="{% if wd.status == 'SUBMITTED' %}row-submitted{% else %}row-draft{% endif %}">
+        <td class="td-name">{{ wd.user.last_name }} {{ wd.user.first_name }}</td>
+        <td class="td-date">{{ wd.date|date:"Y/m/d" }}</td>
+        <td>{{ wd.clock_in|default:"—" }}</td>
+        <td>{{ wd.clock_out|default:"—" }}</td>
+        <td>{{ wd.break_min }}分</td>
+        <td>
+          {% with m=wd.calc_work_min %}
+            {% if m %}{{ m|floatformat:0 }}分{% else %}—{% endif %}
+          {% endwith %}
+        </td>
+        <td>
+          <span class="status-badge {% if wd.status == 'SUBMITTED' %}submitted{% else %}draft{% endif %}">
+            {{ wd.get_status_display }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">該当するデータがありません</div>
+{% endif %}
+
+<!-- ページネーション -->
+{% if is_paginated %}
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&year={{ cur_year }}&month={{ cur_month }}&user={{ cur_user }}&status={{ cur_status }}">← 前へ</a>
+  {% endif %}
+  <span>{{ page_obj.number }} / {{ page_obj.num_pages }} ページ</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&year={{ cur_year }}&month={{ cur_month }}&user={{ cur_user }}&status={{ cur_status }}">次へ →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

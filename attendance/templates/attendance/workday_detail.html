@@ -1,0 +1,53 @@
+<!-- attendance/templates/attendance/workday_detail.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ page_title }}</h2>
+</div>
+
+<div class="summary-card" style="flex-direction:column;gap:10px">
+  <div style="display:flex;gap:16px">
+    <span style="color:#888;width:90px">出勤時刻</span>
+    <strong>{{ workday.clock_in|default:"未入力" }}</strong>
+  </div>
+  <div style="display:flex;gap:16px">
+    <span style="color:#888;width:90px">退勤時刻</span>
+    <strong>{{ workday.clock_out|default:"未入力" }}</strong>
+  </div>
+  <div style="display:flex;gap:16px">
+    <span style="color:#888;width:90px">休憩時間</span>
+    <strong>{{ workday.break_min }}分</strong>
+  </div>
+  <div style="display:flex;gap:16px">
+    <span style="color:#888;width:90px">ステータス</span>
+    <strong>{{ workday.get_status_display }}</strong>
+  </div>
+  <div style="display:flex;gap:16px">
+    <span style="color:#888;width:90px">備考</span>
+    <span>{{ workday.note|default:"なし" }}</span>
+  </div>
+</div>
+
+{% if workday.status == 'DRAFT' %}
+<div class="page-actions">
+  <a href="{% url 'workday_edit_date' workday.date|date:'Y-m-d' %}">編集する</a>
+</div>
+{% endif %}
+
+{% if changelogs %}
+<h3 style="margin-top:28px;margin-bottom:12px;font-size:1rem">変更履歴</h3>
+{% for log in changelogs %}
+<div style="display:flex;gap:12px;padding:8px 12px;background:white;border:1px solid #eee;border-radius:4px;margin-bottom:6px;font-size:.88rem">
+  <span style="color:#aaa;min-width:120px">{{ log.changed_at|date:"Y/m/d H:i" }}</span>
+  <span style="font-family:monospace;color:#555">{{ log.field_name }}</span>
+  <span style="color:#aaa">{{ log.before_value|default:"—" }} → {{ log.after_value|default:"—" }}</span>
+</div>
+{% endfor %}
+{% endif %}
+
+<p style="margin-top:20px">
+  <a href="{% url 'workday_list' %}" style="color:#666;font-size:.9rem">← 一覧に戻る</a>
+</p>
+{% endblock %}

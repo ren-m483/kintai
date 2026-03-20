@@ -1,0 +1,34 @@
+<!-- attendance/templates/attendance/admin_unsub.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ page_title }}</h2>
+  <p class="sub-title">直近 5 営業日</p>
+</div>
+
+{% for row in report %}
+<div class="unsub-day-card {% if row.count == 0 %}all-submitted{% endif %}">
+  <div class="unsub-day-header">
+    <span class="unsub-date">{{ row.date|date:"Y年n月j日（D）" }}</span>
+    {% if row.count > 0 %}
+      <span class="unsub-badge warn-badge">未提出 {{ row.count }}名</span>
+    {% else %}
+      <span class="unsub-badge ok-badge">全員提出済み ✓</span>
+    {% endif %}
+  </div>
+
+  {% if row.not_submitted %}
+  <div class="user-chips" style="margin-top:10px">
+    {% for u in row.not_submitted %}
+    <span class="user-chip warn-chip">
+      {{ u.last_name }} {{ u.first_name }}
+      <span class="chip-sub">{{ u.username }}</span>
+    </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

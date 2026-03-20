@@ -1,0 +1,73 @@
+<!-- attendance/templates/attendance/admin_changelog.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<h2>{{ page_title }}</h2>
+
+<!-- フィルタ -->
+<form method="get" class="filter-form" style="margin-bottom:16px">
+  <select name="user" class="form-control" style="width:auto">
+    <option value="">全社員</option>
+    {% for u in users %}
+      <option value="{{ u.pk }}"
+        {% if u.pk|stringformat:"s" == cur_user %}selected{% endif %}>
+        {{ u.last_name }} {{ u.first_name }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <select name="field" class="form-control" style="width:auto">
+    <option value="">全フィールド</option>
+    {% for f in field_choices %}
+      <option value="{{ f }}"
+        {% if f == cur_field %}selected{% endif %}>{{ f }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" class="btn btn-ghost">絞り込む</button>
+</form>
+
+<!-- ログ一覧 -->
+{% for log in logs %}
+<div class="record-card" style="font-size:.9rem">
+  <span class="log-time" style="color:var(--muted);min-width:120px">
+    {{ log.changed_at|date:"Y/m/d H:i" }}
+  </span>
+  <span style="min-width:100px">
+    {{ log.workday.user.last_name }} {{ log.workday.user.first_name }}
+  </span>
+  <span style="min-width:90px">{{ log.workday.date }}</span>
+  <span style="font-family:var(--font-mono);min-width:80px">
+    {{ log.field_name }}
+  </span>
+  <span style="color:var(--muted)">{{ log.before_value|default:"—" }}</span>
+  <span>→</span>
+  <span style="font-weight:600">{{ log.after_value|default:"—" }}</span>
+  {% if log.changed_by %}
+  <span style="color:var(--muted);font-size:.82rem">
+    （by {{ log.changed_by.username }}）
+  </span>
+  {% endif %}
+</div>
+{% empty %}
+<div class="empty-state">変更ログはありません</div>
+{% endfor %}
+
+<!-- ページネーション -->
+{% if is_paginated %}
+<div class="pagination" style="margin-top:16px;display:flex;gap:8px">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&user={{ cur_user }}&field={{ cur_field }}"
+       class="btn btn-ghost btn-sm">← 前へ</a>
+  {% endif %}
+  <span style="padding:6px 12px">
+    {{ page_obj.number }} / {{ page_obj.num_pages }}ページ
+  </span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&user={{ cur_user }}&field={{ cur_field }}"
+       class="btn btn-ghost btn-sm">次へ →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

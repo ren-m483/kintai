@@ -1,0 +1,167 @@
+<!-- attendance/templates/attendance/admin_csv_export.html -->
+{% extends "attendance/base.html" %}
+{% block title %}CSV エクスポート{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>CSV エクスポート</h2>
+  <p class="sub-title">条件を指定して全社員の勤怠データをダウンロードします</p>
+</div>
+
+<!-- フィルタフォーム -->
+<div class="form-card" style="max-width:720px;margin-bottom:24px">
+  <form method="get" class="kintai-form">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>{{ form.year.label }}</label>
+        {{ form.year }}
+      </div>
+      <div class="form-group">
+        <label>{{ form.month.label }}</label>
+        {{ form.month }}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>{{ form.user.label }}</label>
+      {{ form.user }}
+    </div>
+
+    <div class="form-group">
+      <label>{{ form.status.label }}</label>
+      {{ form.status }}
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-error">入力内容を確認してください</div>
+    {% endif %}
+
+    <div class="form-actions" style="margin-top:24px">
+      <button type="submit" class="btn btn-ghost">🔍 件数を確認</button>
+      <button type="submit" name="download" value="1" class="btn btn-primary">
+        📥 CSV をダウンロード
+      </button>
+    </div>
+
+    <!-- 件数プレビュー -->
+    {% if preview_count is not None %}
+    <div class="preview-result {% if preview_count > 0 %}preview-ok{% else %}preview-empty{% endif %}">
+      {% if preview_count > 0 %}
+        ✓ 対象レコード <strong>{{ preview_count }}件</strong> が見つかりました
+      {% else %}
+        該当するデータがありません
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </form>
+</div>
+
+<!-- 出力フォーマット説明 -->
+<div class="format-card" style="max-width:720px">
+  <div class="format-header">
+    <span class="format-icon">📊</span>
+    <h3>出力フォーマット仕様</h3>
+  </div>
+
+  <!-- 基本情報 -->
+  <div class="export-info-row">
+    <div class="export-info-item">
+      <span class="export-info-label">文字コード</span>
+      <span class="export-info-value">UTF-8（BOM付き）</span>
+    </div>
+    <div class="export-info-item">
+      <span class="export-info-label">Excel</span>
+      <span class="export-info-value">そのまま開けます ✓</span>
+    </div>
+    <div class="export-info-item">
+      <span class="export-info-label">形式</span>
+      <span class="export-info-value">CSV（カンマ区切り）</span>
+    </div>
+  </div>
+
+  <!-- カラム一覧 -->
+  <table class="format-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>カラム名</th>
+        <th>内容</th>
+        <th>例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="col-num">1</td>
+        <td><code>社員ID</code></td>
+        <td>ユーザーの ID</td>
+        <td><code>3</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">2</td>
+        <td><code>ユーザー名</code></td>
+        <td>ログイン ID</td>
+        <td><code>tanaka</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">3</td>
+        <td><code>氏名</code></td>
+        <td>姓＋名</td>
+        <td><code>田中 一郎</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">4</td>
+        <td><code>日付</code></td>
+        <td>勤務日</td>
+        <td><code>2026-03-20</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">5</td>
+        <td><code>出勤時刻</code></td>
+        <td>出勤時刻</td>
+        <td><code>09:00</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">6</td>
+        <td><code>退勤時刻</code></td>
+        <td>退勤時刻</td>
+        <td><code>18:00</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">7</td>
+        <td><code>休憩時間(分)</code></td>
+        <td>休憩時間（分）</td>
+        <td><code>60</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">8</td>
+        <td><code>実働時間(分)</code></td>
+        <td>実労働時間（分）</td>
+        <td><code>480</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">9</td>
+        <td><code>ステータス</code></td>
+        <td>提出状況</td>
+        <td><code>提出済み</code></td>
+      </tr>
+      <tr>
+        <td class="col-num">10</td>
+        <td><code>備考</code></td>
+        <td>備考テキスト</td>
+        <td><code>在宅勤務</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- サンプル出力 -->
+  <div class="sample-preview">
+    <div class="sample-label">出力サンプル（1 行目はヘッダー）</div>
+    <pre class="sample-code">社員ID,ユーザー名,氏名,日付,出勤時刻,退勤時刻,休憩時間(分),実働時間(分),ステータス,備考
+3,tanaka,田中 一郎,2026-03-20,09:00,18:00,60,480,提出済み,
+3,tanaka,田中 一郎,2026-03-19,09:00,19:00,60,540,提出済み,残業</pre>
+  </div>
+</div>
+
+{% endblock %}

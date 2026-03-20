@@ -1,0 +1,75 @@
+<!-- attendance/templates/attendance/admin_dash.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ page_title }}</h2>
+  <p class="sub-title">{{ today|date:"Y年n月j日" }} 時点</p>
+</div>
+
+<!-- KPI カード -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-icon">👥</div>
+    <div class="kpi-label">全社員</div>
+    <div class="kpi-value">{{ all_users_count }}<span class="kpi-unit">名</span></div>
+  </div>
+  <div class="kpi-card ok">
+    <div class="kpi-icon">✅</div>
+    <div class="kpi-label">本日提出済み</div>
+    <div class="kpi-value">{{ submitted_today }}<span class="kpi-unit">名</span></div>
+  </div>
+  <div class="kpi-card {% if not_submitted_count > 0 %}warn{% endif %}">
+    <div class="kpi-icon">⚠️</div>
+    <div class="kpi-label">本日未提出</div>
+    <div class="kpi-value">{{ not_submitted_count }}<span class="kpi-unit">名</span></div>
+  </div>
+</div>
+
+<div class="dash-grid">
+  <!-- 未提出社員リスト -->
+  <div class="dash-section">
+    <div class="section-header">
+      <h3>本日未提出の社員</h3>
+      <a href="{% url 'admin_unsub' %}" class="section-link">全期間を見る →</a>
+    </div>
+    {% if not_submitted_users %}
+    <div class="user-chips">
+      {% for u in not_submitted_users %}
+      <span class="user-chip warn-chip">
+        {{ u.last_name }} {{ u.first_name }}
+        <span class="chip-sub">{{ u.username }}</span>
+      </span>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="all-ok-banner">
+      <span>🎉 全員提出済みです</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- 最近の変更 -->
+  <div class="dash-section">
+    <div class="section-header">
+      <h3>最近の変更</h3>
+    </div>
+    {% for log in recent_logs %}
+    <div class="log-entry">
+      <span class="log-time">{{ log.changed_at|date:"m/d H:i" }}</span>
+      <span class="log-user">{{ log.workday.user.last_name }} {{ log.workday.user.first_name }}</span>
+      <span class="log-date">{{ log.workday.date|date:"m/d" }}</span>
+      <span class="log-field">{{ log.field_name }}</span>
+      <span class="log-change">
+        <span class="log-before">{{ log.before_value|default:"—" }}</span>
+        <span class="log-arrow">→</span>
+        <span class="log-after">{{ log.after_value|default:"—" }}</span>
+      </span>
+    </div>
+    {% empty %}
+    <p class="empty-state" style="padding:20px">変更履歴はありません</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

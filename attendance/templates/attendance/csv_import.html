@@ -1,0 +1,149 @@
+<!-- attendance/templates/attendance/csv_import.html -->
+{% extends "attendance/base.html" %}
+{% block title %}CSV インポート{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>CSV インポート</h2>
+  <p class="sub-title">CSV ファイルをアップロードして勤怠データを一括登録します</p>
+</div>
+
+<!-- アップロードフォーム -->
+<div class="form-card" style="max-width:720px;margin-bottom:24px">
+  <form method="post" enctype="multipart/form-data" class="kintai-form">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>{{ form.csv_file.label }}</label>
+      <div class="file-upload-area">
+        {{ form.csv_file }}
+        <p class="file-upload-hint">CSV ファイルを選択してください（.csv）</p>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">📥 インポート実行</button>
+      <a href="{% url 'csv_sample' %}" class="btn btn-ghost">📄 サンプル CSV をダウンロード</a>
+    </div>
+  </form>
+</div>
+
+<!-- CSV フォーマット説明 -->
+<div class="format-card" style="max-width:720px;margin-bottom:24px">
+  <div class="format-header">
+    <span class="format-icon">📋</span>
+    <h3>CSV フォーマット仕様</h3>
+  </div>
+
+  <table class="format-table">
+    <thead>
+      <tr>
+        <th>カラム名</th>
+        <th>必須</th>
+        <th>形式</th>
+        <th>例</th>
+        <th>説明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>date</code></td>
+        <td><span class="required-badge">必須</span></td>
+        <td><code>YYYY-MM-DD</code></td>
+        <td><code>2025-06-01</code></td>
+        <td>勤務日付</td>
+      </tr>
+      <tr>
+        <td><code>clock_in</code></td>
+        <td><span class="required-badge">必須</span></td>
+        <td><code>HH:MM</code></td>
+        <td><code>09:00</code></td>
+        <td>出勤時刻</td>
+      </tr>
+      <tr>
+        <td><code>clock_out</code></td>
+        <td><span class="required-badge">必須</span></td>
+        <td><code>HH:MM</code></td>
+        <td><code>18:00</code></td>
+        <td>退勤時刻</td>
+      </tr>
+      <tr class="optional-row">
+        <td><code>break_min</code></td>
+        <td><span class="optional-badge">任意</span></td>
+        <td>整数（分）</td>
+        <td><code>60</code></td>
+        <td>休憩時間（省略時は 60 分）</td>
+      </tr>
+      <tr class="optional-row">
+        <td><code>note</code></td>
+        <td><span class="optional-badge">任意</span></td>
+        <td>テキスト</td>
+        <td><code>在宅勤務</code></td>
+        <td>備考（省略可）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- サンプルデータ -->
+  <div class="sample-preview">
+    <div class="sample-label">サンプルデータ（1 行目はヘッダー）</div>
+    <pre class="sample-code">date,clock_in,clock_out,break_min,note
+2025-06-01,09:00,18:00,60,
+2025-06-02,09:30,19:00,60,残業
+2025-06-03,10:00,18:30,45,在宅勤務</pre>
+  </div>
+
+  <!-- 注意事項 -->
+  <ul class="format-notes">
+    <li>文字コードは <strong>UTF-8</strong> または <strong>Shift_JIS</strong>（自動判定）</li>
+    <li>提出済みのレコードは上書きできません</li>
+    <li>エラーがある行はスキップされ、その他の行は処理されます</li>
+  </ul>
+</div>
+
+<!-- インポート結果 -->
+{% if result_rows %}
+<div class="result-card" style="max-width:720px">
+  <div class="result-header">
+    <h3>インポート結果</h3>
+  </div>
+
+  <!-- サマリー -->
+  <div class="result-summary">
+    <div class="result-stat ok-stat">
+      <div class="stat-value">{{ ok_count }}</div>
+      <div class="stat-label">✓ 成功</div>
+    </div>
+    <div class="result-stat skip-stat">
+      <div class="stat-value">{{ skip_count }}</div>
+      <div class="stat-label">⤵ スキップ</div>
+    </div>
+    <div class="result-stat {% if error_count > 0 %}error-stat{% endif %}">
+      <div class="stat-value">{{ error_count }}</div>
+      <div class="stat-label">✕ エラー</div>
+    </div>
+  </div>
+
+  <!-- 行ごとの結果 -->
+  <div class="result-rows">
+    {% for row in result_rows %}
+    <div class="result-row result-{{ row.status }}">
+      <span class="result-rownum">{{ row.row }}行目</span>
+      <span class="result-date">{{ row.date }}</span>
+      {% if row.status == 'ok' %}
+        <span class="result-badge ok-badge">✓ 登録</span>
+      {% elif row.status == 'skip' %}
+        <span class="result-badge skip-badge">⤵ スキップ</span>
+      {% else %}
+        <span class="result-badge error-badge">✕ エラー</span>
+      {% endif %}
+      {% for msg in row.messages %}
+        <span class="result-msg">{{ msg }}</span>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

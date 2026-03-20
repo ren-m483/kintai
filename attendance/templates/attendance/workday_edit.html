@@ -1,0 +1,64 @@
+<!-- attendance/templates/attendance/workday_edit.html -->
+{% extends "attendance/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<h2>{{ page_title }}</h2>
+
+{% if workday.status == 'SUBMITTED' %}
+<div class="alert alert-info">
+  この日付は提出済みです。変更するには管理者にお問い合わせください。
+</div>
+{% else %}
+
+{% if val_errors %}
+<div class="alert alert-error">
+  <strong>提出できません。以下のエラーを確認してください。</strong>
+  <ul>
+    {% for err in val_errors %}<li>{{ err }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if form.errors %}
+<div class="alert alert-error">入力内容を確認してください</div>
+{% endif %}
+
+<form method="post" class="kintai-form">
+  {% csrf_token %}
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>{{ form.clock_in.label }}</label>
+      {{ form.clock_in }}
+      {% for e in form.clock_in.errors %}
+        <span class="field-error">{{ e }}</span>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      <label>{{ form.clock_out.label }}</label>
+      {{ form.clock_out }}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>{{ form.break_min.label }}</label>
+    {{ form.break_min }}
+  </div>
+
+  <div class="form-group">
+    <label>{{ form.note.label }}</label>
+    {{ form.note }}
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" name="action" value="draft" class="btn btn-secondary">
+      一時保存
+    </button>
+    <button type="submit" name="action" value="submit" class="btn btn-primary">
+      提出する
+    </button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}
