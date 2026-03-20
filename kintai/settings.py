@@ -118,63 +118,37 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # ── その他 ────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGGING = {
-    "version":            1,
-    "disable_existing_loggers": False,
+# settings.py の LOGGING を以下に差し替え
 
-    # ── フォーマット ──────────────────────────────────────
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
             "format": "[{asctime}] {levelname} {name} {message}",
             "style":  "{",
         },
-        "simple": {
-            "format": "{levelname} {message}",
-            "style":  "{",
-        },
     },
-
-    # ── ハンドラ ──────────────────────────────────────────
     "handlers": {
-        # コンソール出力（開発時）
         "console": {
             "class":     "logging.StreamHandler",
-            "formatter": "simple",
-        },
-        # ファイル出力（本番）
-        "file": {
-            "class":     "logging.handlers.RotatingFileHandler",
-            "filename":  "/var/log/kintai/app.log",
-            "maxBytes":  10 * 1024 * 1024,   # 10MB でローテート
-            "backupCount": 5,
-            "formatter": "verbose",
-        },
-        # エラーのみ別ファイルに保存
-        "error_file": {
-            "class":     "logging.handlers.RotatingFileHandler",
-            "filename":  "/var/log/kintai/error.log",
-            "level":     "ERROR",
-            "maxBytes":  5 * 1024 * 1024,
-            "backupCount": 3,
             "formatter": "verbose",
         },
     },
-
-    # ── ロガー ────────────────────────────────────────────
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level":    "INFO",
             "propagate": True,
         },
         "django.request": {
-            "handlers": ["error_file"],
-            "level":    "ERROR",
+            "handlers":  ["console"],
+            "level":     "ERROR",
             "propagate": False,
         },
-        "attendance": {   # 自作アプリのロガー
-            "handlers": ["console", "file"],
-            "level":    "DEBUG",
+        "attendance": {
+            "handlers":  ["console"],
+            "level":     "INFO",
             "propagate": False,
         },
     },
