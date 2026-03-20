@@ -15,3 +15,4 @@ media/
 htmlcov/
 *.log
 db.sqlite3
+.DS_Storevenv/
