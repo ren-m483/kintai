@@ -1,18 +1,19 @@
 # kintai/settings.py
+import os
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
-import os
+
 
 load_dotenv()  # .env ファイルを読み込む
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── セキュリティ ──────────────────────────────────────────
-SECRET_KEY = os.environ.get("SECRET_KEY", "insecure-dev-key-change-this")
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key")
 DEBUG      = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-# ── アプリ ────────────────────────────────────────────────
+# ── INSTALLED_APPS ─────────────────────────────────────
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -20,11 +21,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "attendance",               # 自分で作ったアプリ
+    "attendance",
 ]
 
+# ── MIDDLEWARE（whitenoise を追加） ──────────────────────
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",   # ← 追加（2番目に置く）
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -32,8 +35,30 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
 ROOT_URLCONF = "kintai.urls"
+
+# ── データベース ──────────────────────────────────────────
+# DATABASE_URL環境変数があれば（本番）それを使う、なければローカルの PostgreSQL
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE":   "django.db.backends.postgresql",
+            "NAME":     os.environ.get("DB_NAME",     "kintai_db"),
+            "USER":     os.environ.get("DB_USER",     "kintai_user"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "kintai_pass"),
+            "HOST":     os.environ.get("DB_HOST",     "localhost"),
+            "PORT":     os.environ.get("DB_PORT",     "5432"),
+        }
+    }
 
 # ── テンプレート ──────────────────────────────────────────
 TEMPLATES = [
@@ -54,17 +79,17 @@ TEMPLATES = [
     },
 ]
 
-# ── データベース（PostgreSQL）────────────────────────────
-DATABASES = {
-    "default": {
-        "ENGINE":   "django.db.backends.postgresql",
-        "NAME":     os.environ.get("DB_NAME",     "kintai_db"),
-        "USER":     os.environ.get("DB_USER",     "kintai_user"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "kintai_pass"),
-        "HOST":     os.environ.get("DB_HOST",     "localhost"),
-        "PORT":     os.environ.get("DB_PORT",     "5432"),
-    }
-}
+# ── 本番セキュリティ設定 ──────────────────────────────────
+if not DEBUG:
+    SECURE_SSL_REDIRECT             = True
+    SESSION_COOKIE_SECURE           = True
+    CSRF_COOKIE_SECURE              = True
+    SECURE_HSTS_SECONDS             = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS  = True
+    SECURE_HSTS_PRELOAD             = True
+    SECURE_CONTENT_TYPE_NOSNIFF     = True
+    X_FRAME_OPTIONS                 = "DENY"
+
 
 # ── 静的ファイル ──────────────────────────────────────────
 STATIC_URL  = "/static/"
